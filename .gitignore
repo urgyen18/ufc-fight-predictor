@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Data files
+data/
+*.csv
+
+# Jupyter
+.ipynb_checkpoints/
