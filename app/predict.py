@@ -12,6 +12,11 @@ ELO_PATH = Path(__file__).resolve().parents[1] / "models" / "elo_ratings.json"
 
 BASE_ELO = 1500.0
 
+# -- Normalize function --
+def norm_name(s: str) -> str:
+    return str(s).strip().lower()
+
+
 # --- columns in your dataset (you used these earlier) ---
 COL_RED  = "f_1_name"
 COL_BLUE = "f_2_name"
@@ -48,7 +53,10 @@ def latest_stats_for_fighter(df, fighter_name: str):
     fighter_name = str(fighter_name).strip()
 
     # rows where fighter is in either slot
-    mask = (df[COL_RED] == fighter_name) | (df[COL_BLUE] == fighter_name)
+    fighter_norm = norm_name(fighter_name)
+    f1 = df[COL_RED].astype(str).str.strip().str.lower()
+    f2 = df[COL_BLUE].astype(str).str.strip().str.lower()
+    mask = (f1 == fighter_norm) | (f2 == fighter_norm)
     sub = df.loc[mask].copy()
     if len(sub) == 0:
         return {}
@@ -64,7 +72,7 @@ def latest_stats_for_fighter(df, fighter_name: str):
     row = sub.iloc[-1]  # newest
 
     # If fighter is red in this row, use f_1_ columns, else f_2_ columns
-    is_red = (row[COL_RED] == fighter_name)
+    is_red = norm_name(row[COL_RED]) == fighter_norm
 
     stats = {}
     if is_red:
@@ -109,20 +117,47 @@ def predict_fight(red_name: str, blue_name: str):
     Returns: dict with red win probability and features used.
     """
     model, feats = load_model()
-    elo = load_elo()
+    elo_raw = load_elo()
+    elo = {norm_name(k): v for k, v in elo_raw.items()}
+
     df = load_raw_df()
 
     red_name = str(red_name).strip()
     blue_name = str(blue_name).strip()
 
-    # Elo features
-    elo_red  = elo.get(red_name, BASE_ELO)
-    elo_blue = elo.get(blue_name, BASE_ELO)
+    elo_red  = elo.get(norm_name(red_name), BASE_ELO)
+    elo_blue = elo.get(norm_name(blue_name), BASE_ELO)
+
     features = {"elo_diff": elo_red - elo_blue}
 
     # Physical diffs (from latest known stats in dataset)
     red_stats  = latest_stats_for_fighter(df, red_name)
     blue_stats = latest_stats_for_fighter(df, blue_name)
+
+    # ---- DEBUG: inspect why stats are missing ----
+    
+    print("RED input:", red_name)
+    print("BLUE input:", blue_name)
+
+    print("RED stats dict:", red_stats)
+    print("BLUE stats dict:", blue_stats)
+
+    if red_stats:
+        print(
+        "RED reach/height/weight:",
+        red_stats.get("reach_cm"),
+        red_stats.get("height_cm"),
+        red_stats.get("weight_lbs"),
+        )
+
+    if blue_stats:
+        print(
+        "BLUE reach/height/weight:",
+        blue_stats.get("reach_cm"),
+        blue_stats.get("height_cm"),
+        blue_stats.get("weight_lbs"),
+        )
+# --------------------------------------------
 
     # If we have stats, compute diffs
     if red_stats and blue_stats:
