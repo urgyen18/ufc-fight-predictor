@@ -6,20 +6,19 @@ import pandas as pd
 from app.predict import predict_fight
 from app.web import router as web_router
 
+import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+FIGHTERS_PATH = ROOT / "models" / "fighters.json"
+
+with open(FIGHTERS_PATH, "r") as f:
+    FIGHTERS = json.load(f)
+
+FIGHTERS_SET = set(FIGHTERS)
+
+
 app = FastAPI(title="UFC Fight Predictor")
-
-# ---- Load fighter list once at startup ----
-RAW = Path(__file__).resolve().parents[1] / "data" / "UFC_full_data_golden.csv"
-COL_RED = "f_1_name"
-COL_BLUE = "f_2_name"
-
-_df_names = pd.read_csv(RAW, usecols=[COL_RED, COL_BLUE])
-
-FIGHTERS = sorted(
-    set(_df_names[COL_RED].dropna().astype(str).str.strip())
-    | set(_df_names[COL_BLUE].dropna().astype(str).str.strip())
-)
-FIGHTERS_SET = set(FIGHTERS)  # fast membership check
 
 
 @app.get("/fighters")
