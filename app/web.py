@@ -14,7 +14,6 @@ def home():
 </head>
 <body>
   <h2>UFC Fight Predictor</h2>
-  <p>UI VERSION: dropdown-v1</p>
 
   <label>Red fighter</label>
   <input id="red" list="fighters" placeholder="Start typing..." autocomplete="off" />

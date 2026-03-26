@@ -37,3 +37,67 @@ ufc-fight-predictor/
 ├── requirements.txt
 └── README.md
 ```
+## Local Setup
+1) Create & activate virtual environment
+python -m venv .venv
+source .venv/bin/activate
+
+2) Install dependencies
+pip install -r requirements.txt
+
+3) Add dataset (local only)
+
+Place the CSV here:
+
+data/UFC_full_data_golden.csv
+
+
+Note: data/ is ignored by git and is not committed.
+
+4) Run the server
+uvicorn app.api:app --reload
+
+
+Open in browser:
+
+UI → http://127.0.0.1:8000/
+
+Swagger Docs → http://127.0.0.1:8000/docs
+
+## API Usage
+GET /fighters?q=
+
+Autocomplete fighter names.
+
+Example:
+
+curl "http://127.0.0.1:8000/fighters?q=isla&limit=10"
+
+## POST /predict
+
+Request:
+
+curl -X POST "http://127.0.0.1:8000/predict" \
+  -H "Content-Type: application/json" \
+  -d '{"red":"Jon Jones","blue":"Islam Makhachev"}'
+
+
+Response (example):
+
+{
+  "red": "Jon Jones",
+  "blue": "Islam Makhachev",
+  "prob_red_wins": 0.98,
+  "features": {
+    "elo_diff": 41.39,
+    "reach_diff": 35.56,
+    "height_diff": 15.24,
+    "weight_diff": 93.0
+  }
+}
+
+## Tests
+
+Run:
+
+pytest -q
