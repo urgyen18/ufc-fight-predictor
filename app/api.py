@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from pathlib import Path
 import pandas as pd
@@ -56,6 +57,8 @@ def predict(req: PredictRequest):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
+app.mount("/static", StaticFiles(directory=ROOT / "app" / "static"), name="static")
 
 # Serve the UI at "/"
 app.include_router(web_router)

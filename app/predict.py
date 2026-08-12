@@ -134,9 +134,16 @@ def predict_fight(red_name: str, blue_name: str):
     red_stats = stats.get(red_name) or stats.get(norm_name(red_name))
     blue_stats = stats.get(blue_name) or stats.get(norm_name(blue_name))
 
-    features["reach_diff"] = _get_num(red_stats, "reach_cm") - _get_num(blue_stats, "reach_cm")
-    features["height_diff"] = _get_num(red_stats, "height_cm") - _get_num(blue_stats, "height_cm")
-    features["weight_diff"] = _get_num(red_stats, "weight_lbs") - _get_num(blue_stats, "weight_lbs")
+    reach_red = _get_num(red_stats, "reach_cm")
+    reach_blue = _get_num(blue_stats, "reach_cm")
+    height_red = _get_num(red_stats, "height_cm")
+    height_blue = _get_num(blue_stats, "height_cm")
+    weight_red = _get_num(red_stats, "weight_lbs")
+    weight_blue = _get_num(blue_stats, "weight_lbs")
+
+    features["reach_diff"] = reach_red - reach_blue
+    features["height_diff"] = height_red - height_blue
+    features["weight_diff"] = weight_red - weight_blue
 
     # Build X in the exact feature order used in training
     X = pd.DataFrame([{f: features.get(f, np.nan) for f in feats}])
@@ -151,6 +158,12 @@ def predict_fight(red_name: str, blue_name: str):
         "blue": blue_name,
         "prob_red_wins": prob_red,
         "features": features,
+        "stats": {
+            "elo": {"red": elo_red, "blue": elo_blue},
+            "reach_cm": {"red": reach_red, "blue": reach_blue},
+            "height_cm": {"red": height_red, "blue": height_blue},
+            "weight_lbs": {"red": weight_red, "blue": weight_blue},
+        },
     }
 
     return _clean_json(out)
